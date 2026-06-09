@@ -1,16 +1,36 @@
-# config.py
-# Loads settings from the .env file so we never hardcode secrets in code.
+"""
+app/config.py
+-------------
+Central configuration — replaces your existing config.py entirely.
+All settings come from environment variables / .env file.
+"""
+import os
+from typing import List
 
 from dotenv import load_dotenv
-import os
 
-load_dotenv()  # reads the .env file and puts values into environment variables
+load_dotenv()
 
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-DATABASE_URL = os.getenv("DATABASE_URL")
 
-# Quick safety check — crash early with a clear message if keys are missing
-if not GEMINI_API_KEY:
-    raise ValueError("GEMINI_API_KEY is missing. Add it to your .env file.")
-if not DATABASE_URL:
-    raise ValueError("DATABASE_URL is missing. Add it to your .env file.")
+class Settings:
+    # ── Existing settings (keep as-is) ────────────────────────────────────
+    gemini_api_key: str = os.getenv("GEMINI_API_KEY", "")
+    database_url: str = os.getenv(
+        "DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/ai_service"
+    )
+
+    # ── NEW: API key auth ─────────────────────────────────────────────────
+    # Comma-separated list of valid API keys, e.g.  API_KEYS=key1,key2
+    _raw_keys: str = os.getenv("API_KEYS", "dev-secret-key")
+
+    @property
+    def api_keys(self) -> List[str]:
+        return [k.strip() for k in self._raw_keys.split(",") if k.strip()]
+
+    # ── NEW: App metadata ─────────────────────────────────────────────────
+    app_name: str = "AI Q&A Service"
+    app_version: str = "1.0.0"
+    environment: str = os.getenv("ENVIRONMENT", "development")
+
+
+settings = Settings()

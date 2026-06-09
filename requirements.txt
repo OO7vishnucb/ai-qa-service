@@ -4,3 +4,6 @@ google-genai
 psycopg2-binary
 sqlalchemy
 python-dotenv
+pytest
+pytest-asyncio
+httpx

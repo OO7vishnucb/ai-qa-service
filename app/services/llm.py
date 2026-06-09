@@ -1,28 +1,24 @@
-# services/llm.py
 from google import genai
-from app.config import GEMINI_API_KEY
+from app.config import settings
 
-client = genai.Client(api_key=GEMINI_API_KEY)
+client = genai.Client(api_key=settings.gemini_api_key)
 
-def ask_gemini(question: str, context_chunks: list[str]) -> str:
-    if not context_chunks:
-        return "I couldn't find any relevant information in the knowledge base."
+async def generate_answer(question: str, context: list[str]) -> str:
+    context_text = "\n\n".join(context)
+    prompt = f"""Answer the question based only on the context below.
+If the context does not contain the answer, say "I don't have enough information to answer that."
 
-    context = "\n\n---\n\n".join(context_chunks)
+Context:
+{context_text}
 
-    prompt = f"""You are a helpful assistant. Answer the user's question using ONLY the context provided below.
-If the answer is not contained in the context, say "I don't have enough information to answer that."
+Question: {question}
 
-CONTEXT:
-{context}
-
-QUESTION:
-{question}
-
-ANSWER:"""
-
+Answer:"""
     response = client.models.generate_content(
-    model="models/gemini-2.5-flash-lite",
+        model="gemini-2.0-flash",
         contents=prompt,
     )
     return response.text
+
+# Alias for backward compatibility
+ask_gemini = generate_answer
